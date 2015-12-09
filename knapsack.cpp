@@ -22,19 +22,19 @@ void knapsack::pack_backtrack() {
             if (((cp + items_to_choose[k].get_cost()) > current_price) && (k == items_to_choose.size())) {
                 current_price = cp + items_to_choose[k].get_cost();
                 current_weight = cw + items_to_choose[k].get_weight();
-                for (int j = 0; j <= k; j++)
+                for (int j = 0; j < k; j++)
                     x[j] = y[j];
             }
         }
         if (bound(cp, cw, k) >= current_price) {
             y[k] = 0;
-            if (k < items_to_choose.size()) {
+            if (k < items_to_choose.size() - 1) {
                 continue;
             }
-            if ((cp > current_price) && (k == items_to_choose.size())) {
+            if ((cp > current_price) && (k == items_to_choose.size() - 1)) {
                 current_price = (int) cp;
                 current_weight = (int) cw;
-                for (int j = 0; j <= k; j++)
+                for (int j = 0; j < k; j++)
                     x[j] = y[j];
             }
         }
@@ -51,13 +51,13 @@ void knapsack::pack_backtrack() {
 float knapsack::bound(float cp, float cw, int k) {
     float b = cp;
     float c = cw;
-    for (int i = k; i <= items_to_choose.size(); i++) {
+    for (int i = k; i < items_to_choose.size(); i++) {
         c = c + items_to_choose[i].get_weight();
-        if (c < max_weight)
+        if (c <= max_weight)
             b = b + items_to_choose[i].get_cost();
         else
-            return (b +
-                    (1 - (c - max_weight) / (float) items_to_choose[i].get_weight()) * items_to_choose[i].get_cost());
+            return (float)(b +
+                    ((c - max_weight) / (float) items_to_choose[i].get_weight()) * items_to_choose[i].get_cost());
     }
     return b;
 }
@@ -74,26 +74,26 @@ float knapsack::bound(float cp, float cw, int k) {
 void knapsack::pack_rec_backtrack(int k, float cp, float cw) {
     if (cw + items_to_choose[k].get_weight() <= max_weight) {
         y[k] = 1;
-        if (k <= items_to_choose.size()) {
+        if (k < items_to_choose.size() - 1) {
             pack_rec_backtrack(k + 1, cp + items_to_choose[k].get_cost(), cw + items_to_choose[k].get_weight());
         }
-        if (((cp + items_to_choose[k].get_cost()) > current_price) && (k == items_to_choose.size())) {
+        if (((cp + items_to_choose[k].get_cost()) > current_price) && (k == items_to_choose.size() - 1)) {
             current_price = (int) (cp + items_to_choose[k].get_cost());
             current_weight = (int) (cw + items_to_choose[k].get_weight());
-            for (int j = 0; j <= k; j++)
+            for (int j = 0; j < k; j++)
                 x[j] = y[j];
         }
     }
     if (bound(cp, cw, k) >= current_price) {
         y[k] = 0;
-        if (k <= items_to_choose.size()) {
-            pack_rec_backtrack(k + 1, cp, cw);
-        }
-        if ((cp > current_price) && (k == items_to_choose.size())) {
+        if ((cp > current_price) && (k == items_to_choose.size() - 1)) {
             current_price = (int) cp;
             current_weight = (int) cw;
-            for (int j = 0; j <= k; j++)
+            for (int j = 0; j < k; j++)
                 x[j] = y[j];
+        }
+        if (k < items_to_choose.size() - 1) {
+            pack_rec_backtrack(k + 1, cp, cw);
         }
     }
 }
@@ -103,7 +103,7 @@ void knapsack::pack_rec_backtrack(int k, float cp, float cw) {
  * Packs current knapsack, using dynamic programming
  */
 void knapsack::pack_dynamic() {
-    long N = items_to_choose.size();
+    int N = items_to_choose.size();
 
     double temp1 = clock();
     int **sol = new int *[N + 1];
@@ -128,7 +128,7 @@ void knapsack::pack_dynamic() {
 
     temp1 = clock();
     int w = max_weight;
-    for (long n = N; n >= 1; n--) {
+    for (int n = N; n >= 1; n--) {
         if ((sol[n][w] != sol[n - 1][w])) {
             items_packed.push_back(items_to_choose[n - 1]);
             w -= items_to_choose[n - 1].get_weight();
@@ -159,14 +159,14 @@ void knapsack::pack_greedy() {
  */
 void knapsack::sort_items() {
     long size = items_to_choose.size();
-    for (int i = 1; i < size; i++) {
-        for (int j = 2; j < size - 1; j++) {
-            double x = items_to_choose[j - 1].get_cost() / items_to_choose[j - 1].get_weight();
-            double y = items_to_choose[j].get_cost() / items_to_choose[j].get_weight();
+    for (int i = 0; i < size - 1; i++) {
+        for (int j = 0; j < size - 1 - i; j++) {
+            double x = (double) items_to_choose[j].get_cost() / items_to_choose[j].get_weight();
+            double y = (double) items_to_choose[j+1].get_cost() / items_to_choose[j+1].get_weight();
 
-            if (x <= y) {
-                item item1 = items_to_choose[j - 1];
-                items_to_choose[j - 1] = items_to_choose[j];
+            if (x < y) {
+                item item1 = items_to_choose[j + 1];
+                items_to_choose[j + 1] = items_to_choose[j];
                 items_to_choose[j] = item1;
             }
         }

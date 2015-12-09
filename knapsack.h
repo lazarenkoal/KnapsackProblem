@@ -41,8 +41,8 @@ private:
 
 public:
     knapsack() {
-        items_packed = *(new vector<item>(0));
         bad_time = 0;
+        current_price = 0;
     };                   // Default constructor
 
 

@@ -44,7 +44,6 @@ void tester::start_testing(string file_name, knapsack::packing_mode mode) {
 
         // Set items to choose vector
         vector<item> items_to_choose;
-        items_to_choose.push_back(*(new item(-1, 0, 0)));
 
         // Create item objects
         for (int j = 0; j < n; j++) {
