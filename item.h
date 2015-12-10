@@ -5,8 +5,6 @@
 #ifndef KNAPSACKPROBLEM_ITEM_H
 #define KNAPSACKPROBLEM_ITEM_H
 
-#include <thread>
-
 /*
  * Class represents an item to be packed
  */

@@ -30,11 +30,15 @@ public:
     void print_results();
 
     void print_results_to_file();
+    
+    void print_results_to_file(string file_name);
 
     void get_csv_stats();
 
     static void print_overall_file(tester a, tester b, tester c, tester d);
 
+    static void test_samples(string input_file, int number_of_iterations);
+    
     ~tester(){
         knaps.clear();
         times.clear();
