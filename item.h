@@ -26,10 +26,13 @@ public:
         this->weight = weight;
     }
 
+    // Getter for id
     int get_num() { return this->id; }
 
+    // Getter for cost
     int get_cost() { return this->cost; }
 
+    // Getter for weight
     int get_weight() { return this->weight; }
 };
 

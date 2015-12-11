@@ -6,6 +6,12 @@
 #include <iostream>
 #include "tester.h"
 
+/*
+ * Launches testing process for a set of knaps of specified type
+ *
+ * @param file_name - place to save the result
+ * @param mode - algorithm to use
+ */
 void tester::start_testing(string file_name, knapsack::packing_mode mode) {
 
     // File readers
@@ -16,12 +22,12 @@ void tester::start_testing(string file_name, knapsack::packing_mode mode) {
     int num_of_tests;
     infile >> num_of_tests;
 
-    // Read knap capacity
-    int knap_capacity;
-    infile >> knap_capacity;
-
     // Read experimental data
     for (int i = 0; i < num_of_tests; i++) {
+
+        // Read knap capacity
+        int knap_capacity;
+        infile >> knap_capacity;
 
         // Read test number
         int n;
@@ -48,21 +54,21 @@ void tester::start_testing(string file_name, knapsack::packing_mode mode) {
         }
 
         // Create snap and perform experiments
-        knapsack* knap = new knapsack();
+        knapsack *knap = new knapsack();
         double *timeElapsed = new double[number_of_iterations];
 
+        // Perform test with time measurements
         for (int j = 0; j < number_of_iterations; j++) {
             knap = new knapsack(knap_capacity, items_to_choose);
-            clock_t temp1 = clock();
+            auto temp1 = std::chrono::steady_clock::now();
             knap->pack(mode);
-            //double temp2 = clock();
-            clock_t temp2 = clock();
+            auto temp2 = std::chrono::steady_clock::now();
 
             // Getting time in seconds
-            float elapsed_time = ((float)(temp2 - temp1))/CLOCKS_PER_SEC;
+            auto elapsed_time = std::chrono::duration_cast<std::chrono::nanoseconds>(temp2 - temp1);
+
             // Converting to nanoseconds
-            elapsed_time /= 1000000000;
-            timeElapsed[j] = elapsed_time;
+            timeElapsed[j] = (double)elapsed_time.count();
         }
 
 
@@ -73,6 +79,7 @@ void tester::start_testing(string file_name, knapsack::packing_mode mode) {
         }
         avg_time /= number_of_iterations;
 
+        // Free memory
         items_to_choose.clear();
 
         knaps.push_back(*knap);
@@ -82,15 +89,19 @@ void tester::start_testing(string file_name, knapsack::packing_mode mode) {
     infile.close();
 }
 
+/*
+ * Prints results of all knaps in collection
+ */
 void tester::print_results() {
     cout << type << endl;
-    for (int i = 0; i < knaps.size(); i++){
+    for (int i = 0; i < knaps.size(); i++) {
         knaps[i].print_result(times[i]);
     }
 }
 
 /*
  * Prints the results of experiment to the specified file
+ * Version that saves the result to separate file
  */
 void tester::print_results_to_file() {
     ofstream output_stream;
@@ -98,17 +109,20 @@ void tester::print_results_to_file() {
     output_stream.open(filename);
     output_stream << type << endl;
     output_stream.close();
-    for (int i = 0; i < knaps.size(); i++){
+    for (int i = 0; i < knaps.size(); i++) {
         knaps[i].print_to_file(i, filename, times[i]);
     }
 }
 
+/*
+ * Prints result to general file
+ */
 void tester::print_results_to_file(string file_name) {
     ofstream output_stream;
-    output_stream.open(file_name);
+    output_stream.open(file_name, std::ios_base::app);
     output_stream << this->type << endl;
     output_stream.close();
-    for (int i = 0; i < knaps.size(); i++){
+    for (int i = 0; i < knaps.size(); i++) {
         knaps[i].print_to_file(i, file_name, times[i]);
     }
 }
@@ -120,12 +134,15 @@ void tester::get_csv_stats() {
     ofstream output_stream;
     output_stream.open(type + "_stats.csv");
     output_stream << "Time,capacity" << endl;
-    for (int i = 0; i < knaps.size(); i++){
-        output_stream << knaps[i].items_to_choose.size() - 1  << ',' << times[i] << endl;
+    for (int i = 0; i < knaps.size(); i++) {
+        output_stream << knaps[i].get_items_to_choose().size() - 1 << ',' << times[i] << endl;
     }
     output_stream.close();
 }
 
+/*
+ * Prints the results of
+ */
 void tester::print_overall_file(tester a, tester b, tester c, tester d) {
     string output_knap = "output_knap.txt";
     a.print_results_to_file(output_knap);
@@ -134,34 +151,46 @@ void tester::print_overall_file(tester a, tester b, tester c, tester d) {
     d.print_results_to_file(output_knap);
 }
 
+/*
+ * Launchs testing process for every tester
+ *
+ * @param input_file - name of input file
+ * @param number_of_iterations - amount of iterations to perform for time measurement
+ */
 void tester::test_samples(string input_file, int number_of_iterations) {
 
-    tester* backtrack_tester = new tester("Backtrack", number_of_iterations);
-    (*backtrack_tester).start_testing(input_file,  knapsack::BACKTRACK);
+    // Iterative backtrack
+    tester *backtrack_tester = new tester("Backtrack", number_of_iterations);
+    (*backtrack_tester).start_testing(input_file, knapsack::BACKTRACK);
     (*backtrack_tester).get_csv_stats();
     (*backtrack_tester).print_results();
     (*backtrack_tester).print_results_to_file();
 
-    tester* greedy_tester = new tester("Greedy", number_of_iterations);
+    // Greedy algo
+    tester *greedy_tester = new tester("Greedy", number_of_iterations);
     (*greedy_tester).start_testing(input_file, knapsack::GREEDY);
     (*greedy_tester).get_csv_stats();
     (*greedy_tester).print_results();
     (*greedy_tester).print_results_to_file();
 
-    tester* dynamic_tester = new tester("Dynamic", number_of_iterations);
+    // Dynamic algo
+    tester *dynamic_tester = new tester("Dynamic", number_of_iterations);
     (*dynamic_tester).start_testing(input_file, knapsack::DYNAMIC);
     (*dynamic_tester).get_csv_stats();
     (*dynamic_tester).print_results();
     (*dynamic_tester).print_results_to_file();
 
-    tester* rec_backtrack_tester = new tester("Recursive backtrack", number_of_iterations);
+    // Recursive backtrack
+    tester *rec_backtrack_tester = new tester("Recursive backtrack", number_of_iterations);
     (*rec_backtrack_tester).start_testing(input_file, knapsack::REC_BACKTRACK);
     (*rec_backtrack_tester).get_csv_stats();
     (*rec_backtrack_tester).print_results();
     (*rec_backtrack_tester).print_results_to_file();
 
+    // Prints overall result to output_knap.txt
     tester::print_overall_file(*backtrack_tester, *greedy_tester, *dynamic_tester, *rec_backtrack_tester);
 
+    // Clean memory
     delete backtrack_tester;
     delete greedy_tester;
     delete dynamic_tester;
